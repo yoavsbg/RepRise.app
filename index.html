@@ -58,8 +58,8 @@
                     const card = document.createElement("div");
                     card.className = "card bg-white shadow-md p-4 rounded-lg";
                     card.innerHTML = `
-                        <h3 class="text-lg font-semibold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h3>
-                        <h2 class="text-2xl text-primary font-bold">Max: ${Math.max(...entries.map(e => e.value))} reps</h2>
+                        <h2 class="text-2xl text-primary font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h2>
+                        <h3 class="text-lg font-semibold">Max: ${Math.max(...entries.map(e => e.value))} reps</h3>
                         <h3 class="text-lg text-gray-600">Total: ${entries.reduce((sum, e) => sum + e.value, 0)} reps</h3>
                         <p class="text-gray-500">${new Date(entries[entries.length - 1].date).toLocaleString()}</p>
                         <canvas id="chart-${exercise}" class="mt-4"></canvas>
