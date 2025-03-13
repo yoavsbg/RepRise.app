@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepRise.app - Track Your Progress</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-base-200 p-6">
+    <div class="container mx-auto max-w-lg bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">Progress Tracker</h1>
+        <div class="flex flex-col gap-2">
+            <label for="exerciseType" class="text-lg">Select Exercise:</label>
+            <select id="exerciseType" class="select select-bordered w-full">
+                <option value="pushups">Pushups</option>
+                <option value="pullups">Pullups</option>
+                <option value="dips">Dips</option>
+            </select>
+            <input type="number" id="entryInput" placeholder="Enter reps" min="1" class="input input-bordered w-full" />
+            <button id="logButton" class="btn btn-primary w-full">Log Progress</button>
+            
+            <div class="collapse collapse-arrow mt-2 border border-gray-300 rounded-lg">
+                <input type="checkbox" id="toggleNewExercise" class="hidden" />
+                <label for="toggleNewExercise" class="collapse-title text-lg font-medium cursor-pointer text-center">Missing exercise? Click to add</label>
+                <div class="collapse-content flex flex-col gap-2 p-2">
+                    <input type="text" id="newExercise" placeholder="New exercise name" class="input input-bordered w-full" />
+                    <button id="addExerciseButton" class="btn btn-secondary w-full">Add Exercise</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cardsContainer"></div>
+
+    <script src="DataManager.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const dataManager = new DataManager();
+            const logButton = document.getElementById("logButton");
+            const addExerciseButton = document.getElementById("addExerciseButton");
+            const entryInput = document.getElementById("entryInput");
+            const exerciseType = document.getElementById("exerciseType");
+            const newExerciseInput = document.getElementById("newExercise");
+            const cardsContainer = document.getElementById("cardsContainer");
+
+            function updateCards() {
+                cardsContainer.innerHTML = "";
+                const data = dataManager.getEntries();
+
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise] || [];
+                    if (entries.length === 0) return;
+                    
+                    const card = document.createElement("div");
+                    card.className = "card bg-white shadow-md p-4 rounded-lg";
+                    card.innerHTML = `
+                        <h3 class="text-lg font-semibold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h3>
+                        <h2 class="text-2xl text-primary font-bold">Max: ${Math.max(...entries.map(e => e.value))} reps</h2>
+                        <h3 class="text-lg text-gray-600">Total: ${entries.reduce((sum, e) => sum + e.value, 0)} reps</h3>
+                        <p class="text-gray-500">${new Date(entries[entries.length - 1].date).toLocaleString()}</p>
+                        <canvas id="chart-${exercise}" class="mt-4"></canvas>
+                    `;
+                    cardsContainer.appendChild(card);
+
+                    setTimeout(() => updateChart(exercise, entries), 100);
+                });
+            }
+
+            function updateChart(exercise, entries) {
+                const canvas = document.getElementById(`chart-${exercise}`);
+                if (!canvas) return;
+                const ctx = canvas.getContext("2d");
+                
+                canvas.height = 100;
+
+                const labels = entries.map(entry => new Date(entry.date).toLocaleDateString());
+                const values = entries.map(entry => entry.value);
+
+                new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: "Progress",
+                                data: values,
+                                borderColor: "#3b82f6",
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4, // Makes the line smooth
+                                backgroundColor: "rgba(59, 130, 246, 0.1)" // Light fill under the curve
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            scales: {
+                                x: { display: false },
+                                y: { beginAtZero: true }
+                            },
+                            elements: {
+                                point: { radius: 2 }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        },
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Progress",
+                            data: values,
+                            borderColor: "#3b82f6",
+                            borderWidth: 2,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: { display: false },
+                            y: { beginAtZero: true }
+                        },
+                        elements: {
+                            point: { radius: 2 }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            logButton.addEventListener("click", () => {
+                const value = parseInt(entryInput.value);
+                const exercise = exerciseType.value;
+
+                if (!isNaN(value) && value > 0) {
+                    const entry = { date: new Date().toISOString(), value: value };
+                    dataManager.saveEntry(exercise, entry);
+                    entryInput.value = "";
+                    updateCards();
+                } else {
+                    alert("Please enter a valid number greater than zero.");
+                }
+            });
+
+            addExerciseButton.addEventListener("click", () => {
+                const newExercise = newExerciseInput.value.trim().toLowerCase();
+                if (newExercise && !document.querySelector(`#exerciseType option[value='${newExercise}']`)) {
+                    const option = document.createElement("option");
+                    option.value = newExercise;
+                    option.textContent = newExercise.charAt(0).toUpperCase() + newExercise.slice(1);
+                    exerciseType.appendChild(option);
+                    newExerciseInput.value = "";
+                }
+            });
+
+            updateCards();
+        });
+    </script>
+</body>
+</html>
