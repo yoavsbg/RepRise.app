@@ -7,8 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <script src="https://cdn.counter.dev/script.js" data-id="b70cd8af-bfad-41f3-a30d-198b53a52f3c" data-utcoffset="2"></script>
 </head>
 <body class="bg-base-200 p-6">
     <div class="container mx-auto max-w-lg bg-white p-6 rounded-lg shadow-lg">
@@ -23,6 +21,15 @@
             <input type="number" id="entryInput" placeholder="Enter reps" min="1" class="input input-bordered w-full" />
             <button id="logButton" class="btn btn-primary w-full">Log Progress</button>
             
+            <div class="mt-4 pt-4">
+                <select id="dateRange" class="select select-bordered w-full mt-2">
+                    <option value="last24" selected>Last 24 hours</option>
+                    <option value="last7">Last 7 days</option>
+                    <option value="last30">Last 30 days</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+            
             <div class="collapse collapse-arrow mt-2 border border-gray-300 rounded-lg">
                 <input type="checkbox" id="toggleNewExercise" class="hidden" />
                 <label for="toggleNewExercise" class="collapse-title text-lg font-medium cursor-pointer text-center">Missing exercise? Click to add</label>
@@ -36,6 +43,10 @@
 
     <div class="container mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cardsContainer"></div>
 
+    <div class="container mx-auto mt-6 text-center">
+        <button id="exportButton" class="btn btn-secondary btn-lg">Export Progress Data</button>
+    </div>
+
     <script src="DataManager.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -46,20 +57,31 @@
             const exerciseType = document.getElementById("exerciseType");
             const newExerciseInput = document.getElementById("newExercise");
             const cardsContainer = document.getElementById("cardsContainer");
+            const exportButton = document.getElementById("exportButton");
+            const dateRange = document.getElementById("dateRange");
 
             function updateCards() {
                 cardsContainer.innerHTML = "";
                 const data = dataManager.getEntries();
+                const selectedRange = dateRange.value;
+                
+                let hasDataToShow = false;
 
                 Object.keys(data).forEach(exercise => {
-                    const entries = data[exercise] || [];
+                    let entries = data[exercise] || [];
                     if (entries.length === 0) return;
+                    
+                    // Filter entries based on date range
+                    entries = filterEntriesByDateRange(entries, selectedRange);
+                    if (entries.length === 0) return;
+                    
+                    hasDataToShow = true;
                     
                     const card = document.createElement("div");
                     card.className = "card bg-white shadow-md p-4 rounded-lg";
                     card.innerHTML = `
-                        <h2 class="text-2xl text-primary font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h2>
-                        <h3 class="text-lg font-semibold">Max: ${Math.max(...entries.map(e => e.value))} reps</h3>
+                        <h3 class="text-lg font-semibold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h3>
+                        <h2 class="text-2xl text-primary font-bold">Max: ${Math.max(...entries.map(e => e.value))} reps</h2>
                         <h3 class="text-lg text-gray-600">Total: ${entries.reduce((sum, e) => sum + e.value, 0)} reps</h3>
                         <p class="text-gray-500">${new Date(entries[entries.length - 1].date).toLocaleString()}</p>
                         <canvas id="chart-${exercise}" class="mt-4"></canvas>
@@ -68,6 +90,35 @@
 
                     setTimeout(() => updateChart(exercise, entries), 100);
                 });
+                
+                // Display motivational message if no data to show
+                if (!hasDataToShow) {
+                    const motivationCard = document.createElement("div");
+                    motivationCard.className = "card bg-white shadow-md p-8 rounded-lg text-center mx-auto max-w-md";
+                    
+                    const messages = [
+                        "Time to create some progress! Start logging your first exercise.",
+                        "Every rep counts! Let's get started and track your journey.",
+                        "The best time to start was yesterday. The second best time is now!",
+                        "Progress happens one rep at a time. Ready to begin?",
+                        "Success is built on daily habits. Start tracking yours today!"
+                    ];
+                    
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    
+                    motivationCard.innerHTML = `
+                        <h2 class="text-2xl text-primary font-bold mb-4">No data for this time period</h2>
+                        <p class="text-lg">${randomMessage}</p>
+                        <button id="startLoggingBtn" class="btn btn-primary mt-4">Start Logging</button>
+                    `;
+                    cardsContainer.appendChild(motivationCard);
+                    
+                    // Scroll to input and focus on it when "Start Logging" is clicked
+                    document.getElementById("startLoggingBtn").addEventListener("click", () => {
+                        document.querySelector(".container.max-w-lg").scrollIntoView({ behavior: "smooth" });
+                        entryInput.focus();
+                    });
+                }
             }
 
             function updateChart(exercise, entries) {
@@ -136,6 +187,31 @@
                 });
             }
 
+            function filterEntriesByDateRange(entries, range) {
+                const now = new Date();
+                
+                const last24Hours = new Date(now);
+                last24Hours.setHours(now.getHours() - 24); // 24 hours ago from now
+                
+                const last7Days = new Date(now);
+                last7Days.setDate(now.getDate() - 6); // 7 days ago
+                
+                const last30Days = new Date(now);
+                last30Days.setDate(now.getDate() - 29); // 30 days ago
+                
+                switch (range) {
+                    case "last24":
+                        return entries.filter(entry => new Date(entry.date) >= last24Hours);
+                    case "last7":
+                        return entries.filter(entry => new Date(entry.date) >= last7Days);
+                    case "last30":
+                        return entries.filter(entry => new Date(entry.date) >= last30Days);
+                    case "all":
+                    default:
+                        return entries;
+                }
+            }
+
             logButton.addEventListener("click", () => {
                 const value = parseInt(entryInput.value);
                 const exercise = exerciseType.value;
@@ -152,13 +228,41 @@
 
             addExerciseButton.addEventListener("click", () => {
                 const newExercise = newExerciseInput.value.trim().toLowerCase();
-                if (newExercise && !document.querySelector(`#exerciseType option[value='${newExercise}']`)) {
+                if (newExercise && !document.querySelector(`#exerciseType option[value="${newExercise}"]`)) {
                     const option = document.createElement("option");
                     option.value = newExercise;
                     option.textContent = newExercise.charAt(0).toUpperCase() + newExercise.slice(1);
                     exerciseType.appendChild(option);
                     newExerciseInput.value = "";
                 }
+            });
+
+            dateRange.addEventListener("change", updateCards);
+
+            exportButton.addEventListener("click", () => {
+                const data = dataManager.getEntries();
+                const selectedRange = dateRange.value;
+                
+                // Create a filtered copy of the data
+                const filteredData = {};
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise] || [];
+                    const filteredEntries = filterEntriesByDateRange(entries, selectedRange);
+                    if (filteredEntries.length > 0) {
+                        filteredData[exercise] = filteredEntries;
+                    }
+                });
+                
+                const dataStr = JSON.stringify(filteredData, null, 2);
+                const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
+                
+                const rangeSuffix = selectedRange === "all" ? "" : "-" + selectedRange;
+                const exportFileName = "progress-data" + rangeSuffix + "-" + new Date().toISOString().split("T")[0] + ".json";
+                
+                const linkElement = document.createElement("a");
+                linkElement.setAttribute("href", dataUri);
+                linkElement.setAttribute("download", exportFileName);
+                linkElement.click();
             });
 
             updateCards();
