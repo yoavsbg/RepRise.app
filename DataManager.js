@@ -1,6 +1,7 @@
 class DataManager {
-    constructor(storageKey = "progressData") {
+    constructor(storageKey = "progressData", goalsKey = "exerciseGoals") {
         this.storageKey = storageKey;
+        this.goalsKey = goalsKey;
     }
 
     saveEntry(exercise, entry) {
@@ -25,5 +26,31 @@ class DataManager {
             data = {};
         }
         localStorage.setItem(this.storageKey, JSON.stringify(data));
+    }
+    
+    saveGoal(exercise, goal) {
+        let goals = this.getGoals();
+        goals[exercise] = goal;
+        localStorage.setItem(this.goalsKey, JSON.stringify(goals));
+    }
+    
+    getGoals() {
+        let goals = localStorage.getItem(this.goalsKey);
+        return goals ? JSON.parse(goals) : {};
+    }
+    
+    getGoal(exercise) {
+        const goals = this.getGoals();
+        return goals[exercise] || null;
+    }
+    
+    removeGoal(exercise) {
+        let goals = this.getGoals();
+        if (goals[exercise]) {
+            delete goals[exercise];
+            localStorage.setItem(this.goalsKey, JSON.stringify(goals));
+            return true;
+        }
+        return false;
     }
 }
