@@ -66,7 +66,11 @@
             const dateRange = document.getElementById("dateRange");
             const insightsContainer = document.getElementById("insightsContainer");
             const insightsGrid = document.getElementById("insightsGrid");
-
+            
+            // Load saved date range preference
+            const savedDateRange = localStorage.getItem("dateRangePreference") || "last24";
+            dateRange.value = savedDateRange;
+            
             function updateCards() {
                 cardsContainer.innerHTML = "";
                 const data = dataManager.getEntries();
@@ -502,6 +506,8 @@
             });
 
             dateRange.addEventListener("change", () => {
+                // Save date range preference
+                localStorage.setItem("dateRangePreference", dateRange.value);
                 updateCards();
             });
 
