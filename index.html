@@ -43,6 +43,11 @@
 
     <div class="container mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cardsContainer"></div>
 
+    <div class="container mx-auto mt-6 bg-white p-6 rounded-lg shadow-lg" id="insightsContainer">
+        <h2 class="text-xl font-bold text-center mb-4">Your Progress Insights</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="insightsGrid"></div>
+    </div>
+
     <div class="container mx-auto mt-6 text-center">
         <button id="exportButton" class="btn btn-secondary btn-lg">Export Progress Data</button>
     </div>
@@ -59,6 +64,8 @@
             const cardsContainer = document.getElementById("cardsContainer");
             const exportButton = document.getElementById("exportButton");
             const dateRange = document.getElementById("dateRange");
+            const insightsContainer = document.getElementById("insightsContainer");
+            const insightsGrid = document.getElementById("insightsGrid");
 
             function updateCards() {
                 cardsContainer.innerHTML = "";
@@ -118,6 +125,12 @@
                         document.querySelector(".container.max-w-lg").scrollIntoView({ behavior: "smooth" });
                         entryInput.focus();
                     });
+                    
+                    // Hide insights if no data to show
+                    insightsContainer.style.display = "none";
+                } else {
+                    // Generate insights
+                    generateInsights();
                 }
             }
 
@@ -212,6 +225,257 @@
                 }
             }
 
+            function generateInsights() {
+                insightsGrid.innerHTML = "";
+                const data = dataManager.getEntries();
+                const selectedRange = dateRange.value;
+                
+                if (Object.keys(data).length === 0) {
+                    insightsContainer.style.display = "none";
+                    return;
+                }
+                
+                // Filter data based on selected range
+                const filteredData = {};
+                let hasData = false;
+                
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise] || [];
+                    const filteredEntries = filterEntriesByDateRange(entries, selectedRange);
+                    if (filteredEntries.length > 0) {
+                        filteredData[exercise] = filteredEntries;
+                        hasData = true;
+                    }
+                });
+                
+                if (!hasData) {
+                    insightsContainer.style.display = "none";
+                    return;
+                }
+                
+                insightsContainer.style.display = "block";
+                
+                // Generate various insights
+                generatePersonalRecordInsights(filteredData);
+                generateConsistencyInsights(filteredData);
+                generateVolumeInsights(filteredData);
+                generateTimeOfDayInsights(filteredData);
+                generateProgressTrendInsights(filteredData);
+            }
+            
+            function generatePersonalRecordInsights(data) {
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise];
+                    if (entries.length === 0) return;
+                    
+                    // Find max value
+                    const maxValue = Math.max(...entries.map(e => e.value));
+                    const maxEntry = entries.find(e => e.value === maxValue);
+                    const maxDate = new Date(maxEntry.date);
+                    
+                    // Check if max is recent (in the last 7 days)
+                    const isRecent = (new Date() - maxDate) / (1000 * 60 * 60 * 24) < 7;
+                    
+                    // Create insight card
+                    const insightCard = document.createElement("div");
+                    insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-primary";
+                    
+                    let title = `<span class="text-primary font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Personal Record`;
+                    let description = `Your best performance: <span class="text-2xl font-bold">${maxValue} reps</span>`;
+                    
+                    if (isRecent) {
+                        description += `<br><span class="text-success font-medium">🎉 New recent record!</span>`;
+                    }
+                    
+                    description += `<br><span class="text-sm text-gray-500">Achieved on ${maxDate.toLocaleDateString()}</span>`;
+                    
+                    insightCard.innerHTML = `
+                        <h3 class="text-lg font-semibold">${title}</h3>
+                        <p class="mt-2">${description}</p>
+                    `;
+                    
+                    insightsGrid.appendChild(insightCard);
+                });
+            }
+            
+            function generateConsistencyInsights(data) {
+                // Calculate frequency of workouts
+                const allDates = {};
+                
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise];
+                    
+                    // Count days with this exercise
+                    const exerciseDays = new Set();
+                    entries.forEach(entry => {
+                        const dateStr = new Date(entry.date).toLocaleDateString();
+                        exerciseDays.add(dateStr);
+                        
+                        if (!allDates[dateStr]) {
+                            allDates[dateStr] = new Set();
+                        }
+                        allDates[dateStr].add(exercise);
+                    });
+                    
+                    if (exerciseDays.size <= 1) return;
+                    
+                    const insightCard = document.createElement("div");
+                    insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-accent";
+                    
+                    const title = `<span class="text-accent font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Consistency`;
+                    const description = `You've trained <span class="text-xl font-bold">${exerciseDays.size} days</span> in this period`;
+                    
+                    insightCard.innerHTML = `
+                        <h3 class="text-lg font-semibold">${title}</h3>
+                        <p class="mt-2">${description}</p>
+                    `;
+                    
+                    insightsGrid.appendChild(insightCard);
+                });
+                
+                // Overall activity insight
+                if (Object.keys(allDates).length > 1) {
+                    const mostActiveDate = Object.keys(allDates).reduce((a, b) => 
+                        allDates[a].size > allDates[b].size ? a : b
+                    );
+                    
+                    const insightCard = document.createElement("div");
+                    insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-secondary";
+                    
+                    const title = "Most Active Day";
+                    const exercises = Array.from(allDates[mostActiveDate]).map(e => 
+                        e.charAt(0).toUpperCase() + e.slice(1)
+                    ).join(", ");
+                    
+                    insightCard.innerHTML = `
+                        <h3 class="text-lg font-semibold">${title}</h3>
+                        <p class="mt-2">On ${mostActiveDate}, you trained <span class="text-xl font-bold">${allDates[mostActiveDate].size} exercises</span>: ${exercises}</p>
+                    `;
+                    
+                    insightsGrid.appendChild(insightCard);
+                }
+            }
+            
+            function generateVolumeInsights(data) {
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise];
+                    if (entries.length < 2) return;
+                    
+                    const totalVolume = entries.reduce((sum, entry) => sum + entry.value, 0);
+                    const avgReps = Math.round(totalVolume / entries.length * 10) / 10;
+                    
+                    const insightCard = document.createElement("div");
+                    insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-info";
+                    
+                    const title = `<span class="text-info font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Volume`;
+                    const description = `
+                        Total: <span class="text-xl font-bold">${totalVolume} reps</span><br>
+                        Average: <span class="font-medium">${avgReps} reps</span> per session<br>
+                        Sessions: <span class="font-medium">${entries.length}</span>
+                    `;
+                    
+                    insightCard.innerHTML = `
+                        <h3 class="text-lg font-semibold">${title}</h3>
+                        <p class="mt-2">${description}</p>
+                    `;
+                    
+                    insightsGrid.appendChild(insightCard);
+                });
+            }
+            
+            function generateTimeOfDayInsights(data) {
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise];
+                    if (entries.length < 3) return;
+                    
+                    // Group by time of day
+                    const morning = entries.filter(e => {
+                        const hour = new Date(e.date).getHours();
+                        return hour >= 5 && hour < 12;
+                    });
+                    
+                    const afternoon = entries.filter(e => {
+                        const hour = new Date(e.date).getHours();
+                        return hour >= 12 && hour < 18;
+                    });
+                    
+                    const evening = entries.filter(e => {
+                        const hour = new Date(e.date).getHours();
+                        return hour >= 18 || hour < 5;
+                    });
+                    
+                    if (morning.length >= 2 && evening.length >= 2) {
+                        const morningAvg = morning.reduce((sum, e) => sum + e.value, 0) / morning.length;
+                        const eveningAvg = evening.reduce((sum, e) => sum + e.value, 0) / evening.length;
+                        
+                        const difference = Math.round(Math.abs(morningAvg - eveningAvg) / Math.min(morningAvg, eveningAvg) * 100);
+                        
+                        if (difference >= 10) {
+                            const betterTime = morningAvg > eveningAvg ? "morning" : "evening";
+                            
+                            const insightCard = document.createElement("div");
+                            insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-warning";
+                            
+                            const title = `Best Time for ${exercise.charAt(0).toUpperCase() + exercise.slice(1)}`;
+                            const description = `You perform <span class="text-xl font-bold">${difference}%</span> better in the ${betterTime}`;
+                            
+                            insightCard.innerHTML = `
+                                <h3 class="text-lg font-semibold">${title}</h3>
+                                <p class="mt-2">${description}</p>
+                            `;
+                            
+                            insightsGrid.appendChild(insightCard);
+                        }
+                    }
+                });
+            }
+            
+            function generateProgressTrendInsights(data) {
+                Object.keys(data).forEach(exercise => {
+                    const entries = data[exercise];
+                    if (entries.length < 3) return;
+                    
+                    // Sort by date
+                    const sortedEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    
+                    // Get first and last third of entries
+                    const firstThird = sortedEntries.slice(0, Math.ceil(sortedEntries.length / 3));
+                    const lastThird = sortedEntries.slice(-Math.ceil(sortedEntries.length / 3));
+                    
+                    const firstAvg = firstThird.reduce((sum, e) => sum + e.value, 0) / firstThird.length;
+                    const lastAvg = lastThird.reduce((sum, e) => sum + e.value, 0) / lastThird.length;
+                    
+                    const percentChange = Math.round((lastAvg - firstAvg) / firstAvg * 100);
+                    
+                    if (Math.abs(percentChange) >= 5) {
+                        const insightCard = document.createElement("div");
+                        insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4";
+                        
+                        if (percentChange > 0) {
+                            insightCard.classList.add("border-success");
+                        } else {
+                            insightCard.classList.add("border-error");
+                        }
+                        
+                        const title = `${exercise.charAt(0).toUpperCase() + exercise.slice(1)} Progress Trend`;
+                        let description = "";
+                        
+                        if (percentChange > 0) {
+                            description = `<span class="text-success">▲ Improving! ${percentChange}% increase</span> in performance over this period`;
+                        } else {
+                            description = `<span class="text-error">▼ Decreasing ${Math.abs(percentChange)}%</span> in performance over this period`;
+                        }
+                        
+                        insightCard.innerHTML = `
+                            <h3 class="text-lg font-semibold">${title}</h3>
+                            <p class="mt-2">${description}</p>
+                        `;
+                        
+                        insightsGrid.appendChild(insightCard);
+                    }
+                });
+            }
+
             logButton.addEventListener("click", () => {
                 const value = parseInt(entryInput.value);
                 const exercise = exerciseType.value;
@@ -237,7 +501,9 @@
                 }
             });
 
-            dateRange.addEventListener("change", updateCards);
+            dateRange.addEventListener("change", () => {
+                updateCards();
+            });
 
             exportButton.addEventListener("click", () => {
                 const data = dataManager.getEntries();
