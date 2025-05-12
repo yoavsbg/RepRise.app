@@ -31,6 +31,7 @@
                 <option value="pushups">Pushups</option>
                 <option value="pullups">Pullups</option>
                 <option value="dips">Dips</option>
+                <option value="add">Add...</option>
             </select>
             <input type="number" id="entryInput" placeholder="Enter reps" min="1" class="input input-bordered w-full" />
             
@@ -72,9 +73,9 @@
 
     <div id="cardsContainer" class="container mx-auto max-w-lg mt-6 w-full"></div>
     
-    <div class="container mx-auto max-w-lg mt-6 w-full">
+    <!-- <div id="newExerciseContainer" class="container mx-auto max-w-lg mt-6 w-full">
         <div class="collapse collapse-arrow border border-gray-300 rounded-lg">
-            <input type="checkbox" id="toggleNewExercise" class="hidden" />
+            <input type="checkbox" id="toggleNewExercise" />
             <label for="toggleNewExercise" class="collapse-title text-lg font-medium cursor-pointer text-center">Missing exercise? Click to add</label>
             <div class="collapse-content flex flex-col gap-2 p-2">
                 <input type="text" id="newExercise" placeholder="New exercise name" class="input input-bordered w-full" />
@@ -86,7 +87,7 @@
                 <button id="addExerciseButton" class="btn btn-secondary w-full">Add Exercise</button>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- <div class="container mx-auto max-w-lg mt-6 w-full">
         <button id="exportButton" class="btn btn-secondary w-full">Export Progress Data</button>
@@ -146,5 +147,32 @@
             © 2025 RepsRise.app - All Rights Reserved
         </div>
     </footer>
+
+    <!-- Add Exercise Modal -->
+    <dialog id="addExerciseModal" class="modal">
+        <form class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Add New Exercise</h3>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Exercise Name</span>
+                </label>
+                <input type="text" id="modalNewExercise" placeholder="New exercise name" class="input input-bordered w-full" />
+            </div>
+            <div class="form-control mt-2">
+                <label class="label">
+                    <span class="label-text">Measurement Type</span>
+                </label>
+                <select id="modalUnitType" class="select select-bordered w-full">
+                    <option value="reps">Repetitions (reps)</option>
+                    <option value="time">Time (minutes)</option>
+                    <option value="distance">Distance (km)</option>
+                </select>
+            </div>
+            <div class="modal-action">
+                <button type="button" id="cancelAddExerciseButton" class="btn">Cancel</button>
+                <button type="submit" id="modalAddExerciseButton" class="btn btn-primary">Add Exercise</button>
+            </div>
+        </form>
+    </dialog>
 </body>
 </html>
