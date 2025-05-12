@@ -49,7 +49,7 @@ Have ideas or found bugs? Visit our [feedback page](https://insigh.to/b/repsrise
 
 ## 📄 License
 
-RepRise.app - All Rights Reserved © 2025
+RepsRise.app - All Rights Reserved © 2025
 
 ## 💖 Support
 
