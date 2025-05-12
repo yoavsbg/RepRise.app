@@ -1,10 +1,10 @@
-# RepRise.app
+# RepsRise.app
 
 A simple, effective web app for tracking your workout progress.
 
 ## 📊 About
 
-RepRise.app helps you track your fitness journey by recording your workouts and visualizing your progress over time. Whether you're counting reps, tracking time-based exercises, or measuring distances, RepRise keeps your data organized and motivating.
+RepsRise.app helps you track your fitness journey by recording your workouts and visualizing your progress over time. Whether you're counting reps, tracking time-based exercises, or measuring distances, RepRise keeps your data organized and motivating.
 
 ## ✨ Features
 
@@ -18,7 +18,7 @@ RepRise.app helps you track your fitness journey by recording your workouts and 
 
 ## 🚀 Getting Started
 
-Simply visit [RepRise.app](https://repsrise.app) to start using the app immediately - no downloads required!
+Simply visit [RepsRise.app](https://repsrise.app) to start using the app immediately - no downloads required!
 
 The app works entirely in your browser and stores data locally on your device.
 
