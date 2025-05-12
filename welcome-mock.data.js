@@ -1,4 +1,4 @@
-// welcome-mock.data.js - Mock data generator for RepRise.app welcome page
+// welcome-mock.data.js - Mock data generator for RepsRise.app welcome page
 
 // Generate and display a mock pushups exercise card with chart
 function createMockExerciseCard() {
@@ -18,14 +18,17 @@ function createMockExerciseCard() {
     
     // Create card element
     const card = document.createElement("div");
-    card.className = "card bg-base-100 shadow-md p-4 rounded-lg mb-6";
+    const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
+    card.className = isDarkMode 
+        ? "card bg-gray-800 shadow-md p-4 rounded-lg mb-6 border border-gray-700" 
+        : "card bg-base-100 shadow-md p-4 rounded-lg mb-6";
     
     // Calculate stats from entries
     const maxValue = Math.max(...entries.map(e => e.value));
     const totalValue = entries.reduce((sum, e) => sum + e.value, 0);
     
     // Add goal progress bar (optional)
-    const goalValue = 30; // Mock goal value
+    const goalValue = 50; // Mock goal value
     const progress = Math.min(100, Math.round((maxValue / goalValue) * 100));
     const progressColorClass = progress >= 100 ? "progress-success" : "progress-primary";
     
@@ -41,66 +44,77 @@ function createMockExerciseCard() {
         </div>
     `;
     
-    // Build card HTML
+    // Add card content
     card.innerHTML = `
         <div class="flex justify-between items-start">
             <h3 class="text-lg font-semibold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</h3>
-            <button class="btn btn-xs btn-ghost" disabled>
-                Edit Goal
+            <button class="btn btn-xs btn-ghost set-goal-btn" data-exercise="${exercise}">
+                Set Goal
             </button>
         </div>
         ${goalHtml}
         <h2 class="text-2xl text-primary font-bold">Max: ${maxValue} ${unitLabel}</h2>
-        <h3 class="text-lg text-gray-600">Total: ${totalValue} ${unitLabel}</h3>
-        <p class="text-gray-500">${new Date().toLocaleString()}</p>
         <canvas id="chart-${exercise}" class="mt-4"></canvas>
     `;
     
-    // Add card to container
+    // Append card to container
     mockCardContainer.appendChild(card);
     
     // Create chart
     setTimeout(() => createMockChart(exercise, entries), 100);
 }
 
-// Generate mock entries data
+// Generate mock entries for the chart
 function generateMockEntries() {
     const entries = [];
-    const now = new Date();
+    const today = new Date();
     
-    // Sample realistic pushup progression over 14 days
-    const mockValues = [12, 15, 13, 17, 15, 18, 16, 20, 19, 22, 21, 24, 23, 25];
-    
+    // Generate entries for the last 14 days
     for (let i = 13; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(now.getDate() - i);
-        date.setHours(Math.floor(Math.random() * 12) + 8); // Random time between 8am and 8pm
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
         
-        entries.push({
-            date: date.toISOString(),
-            value: mockValues[13 - i]
-        });
+        // Generate realistic-looking data with a slight upward trend
+        let value;
+        if (i > 10) {
+            value = Math.floor(Math.random() * 5) + 10; // Start lower
+        } else if (i > 5) {
+            value = Math.floor(Math.random() * 10) + 15; // Increase slightly
+        } else {
+            value = Math.floor(Math.random() * 15) + 20; // Finish higher
+        }
+        
+        // Occasionally add a "breakthrough" day
+        if (i === 2) {
+            value = 45; // A recent breakthrough
+        }
+        
+        entries.push({ date: date.toISOString(), value });
     }
     
     return entries;
 }
 
-// Create chart using Chart.js (just like in the main app)
+// Create a mock chart for the welcome page
 function createMockChart(exercise, entries) {
     const canvas = document.getElementById(`chart-${exercise}`);
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
     
+    const ctx = canvas.getContext("2d");
     canvas.height = 100;
-
-    const labels = entries.map(entry => new Date(entry.date).toLocaleDateString());
+    
+    const labels = entries.map(entry => {
+        const date = new Date(entry.date);
+        return date.toLocaleDateString();
+    });
+    
     const values = entries.map(entry => entry.value);
     
     // Determine chart colors based on theme
     const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
     const gridColor = isDarkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
     const textColor = isDarkMode ? "#e0e0e0" : "#666";
-
+    
     new Chart(ctx, {
         type: "line",
         data: {
@@ -108,11 +122,11 @@ function createMockChart(exercise, entries) {
             datasets: [{
                 label: "Progress",
                 data: values,
-                borderColor: "#3b82f6",
+                borderColor: "#3b82f6", // Blue color
                 borderWidth: 2,
                 fill: true,
                 tension: 0.4, // Makes the line smooth
-                backgroundColor: "rgba(59, 130, 246, 0.1)" // Light fill under the curve
+                backgroundColor: "rgba(59, 130, 246, 0.1)" // Light blue fill
             }]
         },
         options: {
@@ -139,5 +153,7 @@ function createMockChart(exercise, entries) {
     });
 }
 
-// Initialize the mock data when the DOM is loaded
-document.addEventListener("DOMContentLoaded", createMockExerciseCard); 
+// Initialize when the document is loaded
+document.addEventListener("DOMContentLoaded", () => {
+    createMockExerciseCard();
+}); 

@@ -3,6 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const logButton = document.getElementById("logButton");
     const addExerciseButton = document.getElementById("addExerciseButton");
     const entryInput = document.getElementById("entryInput");
+    const entryDate = document.getElementById("entryDate");
+    const datePickerBtn = document.getElementById("datePickerBtn");
+    const dateDropdown = document.getElementById("dateDropdown");
+    const clearDateButton = document.getElementById("clearDateButton");
+    const applyDateButton = document.getElementById("applyDateButton");
+    const selectedDateDisplay = document.getElementById("selectedDateDisplay");
+    const selectedDateContainer = document.getElementById("selectedDateContainer");
     const exerciseType = document.getElementById("exerciseType");
     const newExerciseInput = document.getElementById("newExercise");
     const unitTypeSelect = document.getElementById("unitType");
@@ -42,6 +49,9 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Update placeholder based on selected exercise
     updateInputPlaceholder();
+    
+    // Hide date dropdown by default
+    dateDropdown.classList.add("hidden");
     
     // Function to get unit label for display
     function getUnitLabel(unitType) {
@@ -200,7 +210,10 @@ document.addEventListener("DOMContentLoaded", () => {
             hasDataToShow = true;
             
             const card = document.createElement("div");
-            card.className = "card bg-base-100 shadow-md p-4 rounded-lg mb-6";
+            const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
+            card.className = isDarkMode 
+                ? "card bg-gray-800 shadow-md p-4 rounded-lg mb-6 border border-gray-700" 
+                : "card bg-base-100 shadow-md p-4 rounded-lg mb-6";
             
             // Get goal for this exercise if it exists
             const goal = dataManager.getGoal(exercise);
@@ -240,7 +253,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 ${goalHtml}
                 <h2 class="text-2xl text-primary font-bold">Max: ${Math.max(...entries.map(e => e.value))} ${unitLabel}</h2>
-                <h3 class="text-lg text-gray-600">Total: ${entries.reduce((sum, e) => sum + e.value, 0)} ${unitLabel}</h3>
                 <p class="text-gray-500">${new Date(entries[entries.length - 1].date).toLocaleString()}</p>
                 <canvas id="chart-${exercise}" class="mt-4"></canvas>
             `;
@@ -257,7 +269,10 @@ document.addEventListener("DOMContentLoaded", () => {
         // Display motivational message if no data to show
         if (!hasDataToShow) {
             const motivationCard = document.createElement("div");
-            motivationCard.className = "card bg-base-100 shadow-md p-6 rounded-lg text-center mx-auto max-w-lg w-full";
+            const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
+            motivationCard.className = isDarkMode 
+                ? "card bg-gray-800 shadow-md p-6 rounded-lg text-center mx-auto max-w-lg w-full border border-gray-700" 
+                : "card bg-base-100 shadow-md p-6 rounded-lg text-center mx-auto max-w-lg w-full";
             
             const messages = [
                 "\"Success isn't always about greatness. It's about consistency.\" — The Rock",
@@ -411,6 +426,14 @@ document.addEventListener("DOMContentLoaded", () => {
         generateProgressTrendInsights(filteredData);
     }
     
+    // Helper function to get appropriate card styling based on theme
+    function getCardClassName(borderClass = "") {
+        const isDarkMode = document.documentElement.getAttribute("data-theme") === "dark";
+        return isDarkMode 
+            ? `card bg-gray-800 shadow-sm p-4 border-l-4 ${borderClass} border-r border-t border-b border-gray-700` 
+            : `card bg-base-100 shadow-sm p-4 border-l-4 ${borderClass}`;
+    }
+    
     function generatePersonalRecordInsights(data) {
         Object.keys(data).forEach(exercise => {
             const entries = data[exercise];
@@ -430,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Create insight card
             const insightCard = document.createElement("div");
-            insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-primary";
+            insightCard.className = getCardClassName();
             
             let title = `<span class="text-primary font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Personal Record`;
             let description = `Your best performance: <span class="text-2xl font-bold">${maxValue} ${unitLabel}</span>`;
@@ -472,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (exerciseDays.size <= 1) return;
             
             const insightCard = document.createElement("div");
-            insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-accent";
+            insightCard.className = getCardClassName("border-accent");
             
             const title = `<span class="text-accent font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Consistency`;
             const description = `You've trained <span class="text-xl font-bold">${exerciseDays.size} days</span> in this period`;
@@ -492,7 +515,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
             
             const insightCard = document.createElement("div");
-            insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-secondary";
+            insightCard.className = getCardClassName("border-secondary");
             
             const title = "Most Active Day";
             const exercises = Array.from(allDates[mostActiveDate]).map(e => 
@@ -517,11 +540,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const avgReps = Math.round(totalVolume / entries.length * 10) / 10;
             
             const insightCard = document.createElement("div");
-            insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-info";
+            insightCard.className = getCardClassName("border-info");
             
             const title = `<span class="text-info font-bold">${exercise.charAt(0).toUpperCase() + exercise.slice(1)}</span> Volume`;
             const description = `
-                Total: <span class="text-xl font-bold">${totalVolume} ${getUnitLabel(getExerciseData(exercise).unit)}</span><br>
                 Average: <span class="font-medium">${avgReps} ${getUnitLabel(getExerciseData(exercise).unit)}</span> per session<br>
                 Sessions: <span class="font-medium">${entries.length}</span>
             `;
@@ -566,7 +588,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const betterTime = morningAvg > eveningAvg ? "morning" : "evening";
                     
                     const insightCard = document.createElement("div");
-                    insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4 border-warning";
+                    insightCard.className = getCardClassName("border-warning");
                     
                     const title = `Best Time for ${exercise.charAt(0).toUpperCase() + exercise.slice(1)}`;
                     const description = `You perform <span class="text-xl font-bold">${difference}%</span> better in the ${betterTime}`;
@@ -601,7 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (Math.abs(percentChange) >= 5) {
                 const insightCard = document.createElement("div");
-                insightCard.className = "card bg-base-100 shadow-sm p-4 border-l-4";
+                insightCard.className = getCardClassName();
                 
                 if (percentChange > 0) {
                     insightCard.classList.add("border-success");
@@ -633,7 +655,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const exercise = exerciseType.value;
 
         if (!isNaN(value) && value > 0) {
-            const entry = { date: new Date().toISOString(), value: value };
+            // Use selected date if available, otherwise use current date
+            let entryDateTime;
+            if (entryDate.value) {
+                entryDateTime = new Date(entryDate.value).toISOString();
+            } else {
+                entryDateTime = new Date().toISOString();
+            }
+            
+            const entry = { date: entryDateTime, value: value };
             dataManager.saveEntry(exercise, entry);
             entryInput.value = "";
             updateCards();
@@ -697,6 +727,48 @@ document.addEventListener("DOMContentLoaded", () => {
         linkElement.setAttribute("href", dataUri);
         linkElement.setAttribute("download", exportFileName);
         linkElement.click();
+    });
+
+    // Toggle date picker dropdown
+    datePickerBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Always set current date/time when the picker is opened
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        
+        entryDate.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        
+        dateDropdown.classList.toggle("hidden");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!dateDropdown.contains(e.target) && e.target !== datePickerBtn) {
+            dateDropdown.classList.add("hidden");
+        }
+    });
+    
+    // Handle apply date button
+    applyDateButton.addEventListener("click", () => {
+        if (entryDate.value) {
+            const selectedDate = new Date(entryDate.value);
+            selectedDateDisplay.textContent = selectedDate.toLocaleString();
+            selectedDateContainer.classList.remove("hidden");
+        }
+        dateDropdown.classList.add("hidden");
+    });
+    
+    // Handle clear date button
+    clearDateButton.addEventListener("click", () => {
+        entryDate.value = "";
+        selectedDateContainer.classList.add("hidden");
+        dateDropdown.classList.add("hidden");
     });
 
     updateCards();

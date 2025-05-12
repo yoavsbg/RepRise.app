@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RepRise.app - Track Your Progress</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" title="RepRise.app">
+    <title>RepsRise.app - Track Your Progress</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" title="RepsRise.app">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -14,10 +14,10 @@
 
 </head>
 <body class="bg-base-200 p-6 flex flex-col items-center">
-    <div class="container mx-auto max-w-lg bg-base-100 p-6 rounded-lg shadow-lg w-full">
+    <div class="container mx-auto max-w-lg p-6 w-full">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold" title="RepRise.app">
-                <img src="favicon.svg" alt="RepRise Logo" class="inline-block w-6 h-6 mr-2">RepRise - track your workout
+            <h1 class="text-2xl font-bold" title="RepsRise.app">
+                <img src="favicon.svg" alt="RepsRise Logo" class="inline-block w-6 h-6 mr-2">RepsRise
             </h1>
             <label class="swap swap-rotate">
                 <input type="checkbox" id="themeToggle" class="theme-controller" />
@@ -33,7 +33,31 @@
                 <option value="dips">Dips</option>
             </select>
             <input type="number" id="entryInput" placeholder="Enter reps" min="1" class="input input-bordered w-full" />
-            <button id="logButton" class="btn btn-primary w-full">Log Progress</button>
+            
+            <div class="flex mt-3 relative gap-[1px]">
+                <button id="logButton" class="btn btn-primary rounded-r-none flex-grow">Log Progress</button>
+                <div class="dropdown dropdown-end">
+                    <button id="datePickerBtn" class="btn btn-primary rounded-l-none border-l border-primary-focus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-clock-icon lucide-calendar-clock"><path d="M21 7.5V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h3.5"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h5"/><path d="M17.5 17.5 16 16.3V14"/><circle cx="16" cy="16" r="6"/></svg>
+                    </button>
+                    <div id="dateDropdown" class="dropdown-content z-[1] shadow bg-base-100 rounded-box w-64">
+                        <div class="p-3">
+                            <label class="label pb-1">
+                                <span class="label-text font-medium">Select date and time</span>
+                            </label>
+                            <input type="datetime-local" id="entryDate" class="input input-sm input-bordered w-full" />
+                            <div class="flex justify-end mt-3 gap-2">
+                                <button id="clearDateButton" type="button" class="btn btn-sm">Clear</button>
+                                <button id="applyDateButton" type="button" class="btn btn-sm btn-primary">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="selectedDateContainer" class="mt-2 hidden">
+                <span class="text-sm">Selected date: <span id="selectedDateDisplay" class="text-primary font-medium"></span></span>
+            </div>
             
             <div class="mt-4 pt-4">
                 <select id="dateRange" class="select select-bordered w-full mt-2">
@@ -43,19 +67,26 @@
                     <option value="all">All</option>
                 </select>
             </div>
-            
-            <div class="collapse collapse-arrow mt-2 border border-gray-300 rounded-lg">
-                <input type="checkbox" id="toggleNewExercise" class="hidden" />
-                <label for="toggleNewExercise" class="collapse-title text-lg font-medium cursor-pointer text-center">Missing exercise? Click to add</label>
-                <div class="collapse-content flex flex-col gap-2 p-2">
-                    <input type="text" id="newExercise" placeholder="New exercise name" class="input input-bordered w-full" />
-                    <button id="addExerciseButton" class="btn btn-secondary w-full">Add Exercise</button>
-                </div>
-            </div>
         </div>
     </div>
 
     <div id="cardsContainer" class="container mx-auto max-w-lg mt-6 w-full"></div>
+    
+    <div class="container mx-auto max-w-lg mt-6 w-full">
+        <div class="collapse collapse-arrow border border-gray-300 rounded-lg">
+            <input type="checkbox" id="toggleNewExercise" class="hidden" />
+            <label for="toggleNewExercise" class="collapse-title text-lg font-medium cursor-pointer text-center">Missing exercise? Click to add</label>
+            <div class="collapse-content flex flex-col gap-2 p-2">
+                <input type="text" id="newExercise" placeholder="New exercise name" class="input input-bordered w-full" />
+                <select id="unitType" class="select select-bordered w-full">
+                    <option value="reps">Repetitions (reps)</option>
+                    <option value="time">Time (minutes)</option>
+                    <option value="distance">Distance (km)</option>
+                </select>
+                <button id="addExerciseButton" class="btn btn-secondary w-full">Add Exercise</button>
+            </div>
+        </div>
+    </div>
 
     <!-- <div class="container mx-auto max-w-lg mt-6 w-full">
         <button id="exportButton" class="btn btn-secondary w-full">Export Progress Data</button>
@@ -84,22 +115,25 @@
     <footer class="container mx-auto max-w-lg mt-12 pb-6">
         <div class="grid grid-cols-3 gap-4 text-center">
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">LINKS</h3>
+                <h3 class="font-bold text-sm text-gray-500 mb-3">LINKS</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="#" id="exportLink" class="hover:underline">Export data</a></li>
+                    <li><a href="/" class="hover:underline">Log in</a></li>
+                    <li><a href="https://insigh.to/b/repsriseapp" class="hover:underline" target="_blank">Ideas + Bugs</a></li>
+                    <li><a href="#" id="exportLink" class="hover:underline" target="_blank">Export data</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">LEGAL</h3>
+                <h3 class="font-bold text-sm text-gray-500 mb-3">LEGAL</h3>
                 <ul class="space-y-2 text-sm">
                     <li><a href="terms-of-service.html" class="hover:underline">Terms of services</a></li>
                     <li><a href="privacy-policy.html" class="hover:underline">Privacy policy</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">MORE</h3>
+                <h3 class="font-bold text-sm text-gray-500 mb-3">MORE</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="https://easystopwatch.app/?ref=reprise" target="_blank" class="hover:underline">Easy Stopwatch</a></li>
+                    <li><a href="https://easystopwatch.app/?ref=repsrise" target="_blank" class="hover:underline">Easy Stopwatch</a></li>
+                    <li><a href="https://buymeacoffee.com/yoavsbg" target="_blank" class="hover:underline">Buy me a coffee</a></li>
                 </ul>
             </div>
         </div>
@@ -107,7 +141,7 @@
             Made with 💪 by <a href="https://x.com/yoavsbg" class="text-blue-500 hover:underline" target="_blank">Yoav Sabag</a>
         </div>
         <div class="text-xs text-gray-500 mt-2 text-center">
-            © 2025 RepRise.app - All Rights Reserved
+            © 2025 RepsRise.app - All Rights Reserved
         </div>
     </footer>
 </body>

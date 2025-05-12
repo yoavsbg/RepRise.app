@@ -3,30 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RepRise.app - Track Your Progress</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" title="RepRise.app">
+    <title>RepsRise.app - Track Your Progress</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" title="RepsRise.app">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="welcome-mock.data.js"></script>
     <script src="https://cdn.counter.dev/script.js" data-id="b70cd8af-bfad-41f3-a30d-198b53a52f3c" data-utcoffset="2"></script>
+    <script>
+        // Apply saved theme from localStorage on page load
+        document.addEventListener("DOMContentLoaded", () => {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+        });
+    </script>
     <style>
-        body {
-            background-color: #f8fafc;
-        }
         .welcome-container {
             max-width: 500px;
             margin: 0 auto;
             padding: 2rem;
-            /*background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);*/
         }
+        
         .footer-section {
             display: flex;
             justify-content: space-between;
             margin-top: 3rem;
         }
+        
         .footer-column {
             display: flex;
             flex-direction: column;
@@ -34,19 +37,19 @@
         }
     </style>
 </head>
-<body class="min-h-screen p-6">
+<body class="min-h-screen p-6 bg-base-200 text-base-content">
     <div class="welcome-container">
         <div class="flex justify-between items-center mb-8">
             <div class="flex items-center">
-                <img src="favicon.svg" alt="RepRise Logo" class="w-8 h-8 mr-2">
-                <span class="text-xl font-bold">RepRise</span>
+                <img src="favicon.svg" alt="RepsRise Logo" class="w-8 h-8 mr-2">
+                <span class="text-xl font-bold">RepsRise</span>
             </div>
-            <a href="index-app.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">LOG IN</a>
+            <a href="index-app.html" class="btn btn-primary">LOG IN</a>
         </div>
 
-        <h1 class="text-3xl font-bold mb-6">Improve your workout with data</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center">Improve your workout with data</h1>
         
-        <p class="text-gray-600 mb-8">
+        <p class="opacity-80 mb-8">
             Get an easy way to track your workouts, see your progress, and achieve your fitness goals. Join 
             thousands of fitness enthusiasts who are already remarkable!
         </p>
@@ -54,7 +57,7 @@
         <!-- Mock card container - only the chart goes in a card -->
         <div id="mockCardContainer" class="mb-8"></div>
 
-        <a href="index-app.html" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 w-full block text-center rounded-md font-medium flex items-center justify-center">
+        <a href="index-app.html" class="btn btn-primary w-full">
             START TRACKING NOW
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
@@ -65,30 +68,32 @@
     <footer class="container mx-auto max-w-lg mt-8 pb-6">
         <div class="grid grid-cols-3 gap-4 text-center">
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">LINKS</h3>
+                <h3 class="font-bold text-sm opacity-60 mb-3">LINKS</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="index-app.html" class="hover:underline text-gray-700">App</a></li>
+                    <li><a href="index-app.html" class="hover:underline">App</a></li>
+                    <li><a href="https://insigh.to/b/repsriseapp" class="hover:underline" target="_blank">Ideas + Bugs</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">LEGAL</h3>
+                <h3 class="font-bold text-sm opacity-60 mb-3">LEGAL</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="terms-of-service.html" class="hover:underline text-gray-700">Terms of services</a></li>
-                    <li><a href="privacy-policy.html" class="hover:underline text-gray-700">Privacy policy</a></li>
+                    <li><a href="terms-of-service.html" class="hover:underline">Terms of services</a></li>
+                    <li><a href="privacy-policy.html" class="hover:underline">Privacy policy</a></li>
                 </ul>
             </div>
             <div>
-                <h3 class="font-medium text-sm text-gray-500 mb-3">MORE</h3>
+                <h3 class="font-bold text-sm opacity-60 mb-3">MORE</h3>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="https://easystopwatch.app/?ref=reprise" target="_blank" class="hover:underline text-gray-700">Easy Stopwatch</a></li>
+                    <li><a href="https://easystopwatch.app/?ref=repsrise" target="_blank" class="hover:underline">Easy Stopwatch</a></li>
+                    <li><a href="https://buymeacoffee.com/yoavsbg" target="_blank" class="hover:underline">Buy me a coffee</a></li>
                 </ul>
             </div>
         </div>
-        <div class="text-xs text-gray-500 mt-8 text-center">
+        <div class="text-xs opacity-60 mt-8 text-center">
             Made with 💪 by <a href="https://x.com/yoavsbg" class="text-blue-500 hover:underline" target="_blank">Yoav Sabag</a>
         </div>
-        <div class="text-xs text-gray-500 mt-2 text-center">
-            © 2025 RepRise.app - All Rights Reserved
+        <div class="text-xs opacity-60 mt-2 text-center">
+            © 2025 RepsRise.app - All Rights Reserved
         </div>
     </footer>
 </body>
