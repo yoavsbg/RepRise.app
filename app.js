@@ -274,6 +274,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 const progress = Math.min(100, Math.round((maxValue / goalValue) * 100));
                 const progressColorClass = progress >= 100 ? "progress-success" : "progress-primary";
                 
+                // Trigger confetti only when a goal is newly achieved
+                if (progress >= 100) {
+                    // Check if we've already celebrated this goal
+                    const celebratedGoals = JSON.parse(localStorage.getItem("celebratedGoals") || "{}");
+                    const goalKey = `${exercise}_${goalValue}`;
+                    
+                    if (!celebratedGoals[goalKey]) {
+                        // Mark this goal as celebrated
+                        celebratedGoals[goalKey] = true;
+                        localStorage.setItem("celebratedGoals", JSON.stringify(celebratedGoals));
+                        
+                        // Trigger confetti with a slight delay
+                        setTimeout(() => {
+                            if (typeof triggerGoalConfetti === "function") {
+                                triggerGoalConfetti();
+                            }
+                        }, 300);
+                    }
+                }
+                
                 goalHtml = `
                     <div class="mt-2 mb-4">
                         <div class="flex justify-between mb-1">
@@ -554,6 +574,28 @@ document.addEventListener("DOMContentLoaded", () => {
             const entry = { date: entryDateTime, value: value };
             dataManager.saveEntry(exercise, entry);
             entryInput.value = "";
+            
+            // Check if this entry achieves a goal
+            const goal = dataManager.getGoal(exercise);
+            if (goal && value >= goal.value) {
+                // Check if we've already celebrated this goal
+                const celebratedGoals = JSON.parse(localStorage.getItem("celebratedGoals") || "{}");
+                const goalKey = `${exercise}_${goal.value}`;
+                
+                if (!celebratedGoals[goalKey]) {
+                    // Mark this goal as celebrated
+                    celebratedGoals[goalKey] = true;
+                    localStorage.setItem("celebratedGoals", JSON.stringify(celebratedGoals));
+                    
+                    // Trigger confetti with a slight delay
+                    setTimeout(() => {
+                        if (typeof triggerGoalConfetti === "function") {
+                            triggerGoalConfetti();
+                        }
+                    }, 300);
+                }
+            }
+            
             updateCards();
         } else {
             alert("Please enter a valid number greater than zero.");

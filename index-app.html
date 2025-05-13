@@ -184,4 +184,39 @@
         </form>
     </dialog>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+// Function to trigger confetti when a goal is reached
+function triggerGoalConfetti() {
+    // First confetti burst
+    confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+
+    // Second confetti burst after a short delay
+    setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 }
+        });
+    }, 250);
+
+    // Third confetti burst from the other side
+    setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 }
+        });
+    }, 400);
+}
+
+// This function should be called when a user reaches their goal
+// Example: if(currentValue >= goalValue) triggerGoalConfetti();
+</script>
 </html>
